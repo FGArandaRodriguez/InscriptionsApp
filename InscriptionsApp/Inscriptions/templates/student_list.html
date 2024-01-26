@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lista de Estudiantes</title>
+    <style>
+        /* Tus estilos aquí */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        .container {
+            width: 90%;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1, h2, h3 {
+            color: #0056b3;
+        }
+
+        h1 {
+            background-color: #008000; /* Verde */
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            margin-bottom: 30px;
+            border-radius: 8px 8px 0 0;
+        }
+
+        h2 {
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #006400; /* Verde oscuro */
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .gender-section, .currency-section {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .gender-section div, .currency-section div {
+            width: 48%;
+        }
+
+        .student-info {
+            margin: 5px 0;
+            padding: 10px;
+            background-color: #e7e7e7;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Estudiantes</h1>
+
+    <div class="container">
+        <!-- Formulario para filtros -->
+        <form method="get">
+            <label for="start_date">Con Fecha de Inicio:</label>
+            <input type="checkbox" name="start_date" id="start_date" value="1" {% if request.GET.start_date %}checked{% endif %}>
+
+            <label for="genero">Género:</label>
+            <select name="genero" id="genero">
+                <option value="">Todos</option>
+                <option value="Masculino" {% if request.GET.genero == "Masculino" %}selected{% endif %}>Masculino</option>
+                <option value="Femenino" {% if request.GET.genero == "Femenino" %}selected{% endif %}>Femenino</option>
+            </select>
+
+            <input type="text" name="moneda" placeholder="Moneda" value="{{ request.GET.moneda }}">
+            
+            <button type="submit">Filtrar</button>
+            <a href="{% url 'student_list' %}" class="reset-button">Limpiar Filtros</a>
+        </form>
+
+        <p>Cantidad de estudiantes: {{ total_students }}</p>
+
+        <!-- Mostrar tabla de todos los estudiantes si no se han aplicado filtros -->
+        {% if not filters_applied %}
+            <table>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Correo</th>
+                    <th>Matrícula</th>
+                </tr>
+                {% for student in students %}
+                <tr>
+                    <td>{{ student.nombre }}</td>
+                    <td>{{ student.apellidos }}</td>
+                    <td>{{ student.email }}</td>
+                    <td>{{ student.matricula }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+
+        <!-- Mostrar resultados filtrados si se han aplicado filtros -->
+        {% if filters_applied %}
+            <!-- Sección de estudiantes con fecha de inicio -->
+            {% if students_with_start_date %}
+                <h2>Estudiantes con Fecha de Inicio</h2>
+                {% for student in students_with_start_date %}
+                    <div class="student-info">
+                        {{ student.matricula }} - {{ student.fecha_inicio_ucamp|date:"d-m-Y" }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Sección de estudiantes por género -->
+            {% if male_students or female_students %}
+                <h2>Estudiantes por Género</h2>
+                <div class="gender-section">
+                    {% if male_students %}
+                        <div>
+                            <h3>Masculino</h3>
+                            {% for student in male_students %}
+                                <div class="student-info">{{ student.matricula }}-{{ student.genero }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if female_students %}
+                        <div>
+                            <h3>Femenino</h3>
+                            {% for student in female_students %}
+                                <div class="student-info">{{ student.matricula }}-{{ student.genero }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <!-- Sección de estudiantes por tipo de moneda -->
+            {% if students_by_currency %}
+                <h2>Estudiantes por Tipo de Moneda</h2>
+                <div class="currency-section">
+                    {% for student in students_by_currency %}
+                        <div class="student-info">{{ student.matricula }}-{{ student.moneda }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</body>
+</html>
